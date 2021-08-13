@@ -147,7 +147,7 @@ class BonchMessage:
         soup = bs(r.text, "html.parser")
         text = soup.script.text
         print(text)
-        temp1 = text[text.find('data.errors')+4+7+4:]
+        temp1 = text[text.find('data.exceptions')+4+7+4:]
         error = bs(temp1[:temp1.find('"')], "html.parser").text
         print("error", error == "")
         # temp1 = text[text.find('data2+=')+5+4:]
@@ -280,7 +280,7 @@ mes_otvet:  видимо текст для ответа
 saveotv: 
 
 ответ на ответ
-<Script Language="JavaScript">var data = new Object;var data2 ='';data.errors = "";data.iditem = "1305359";data.idinfo = "1305769";data.name = "reshitzadachy_virychkazagodsostavila_30000t5.docx";window.parent.handleResponse(data);</Script>
+<Script Language="JavaScript">var data = new Object;var data2 ='';data.exceptions = "";data.iditem = "1305359";data.idinfo = "1305769";data.name = "reshitzadachy_virychkazagodsostavila_30000t5.docx";window.parent.handleResponse(data);</Script>
 
 
 """
