@@ -1,6 +1,7 @@
+from enum import Enum
 
 
-class Settings:
+class Settings(Enum):
     """
     Класс настроек
     """
