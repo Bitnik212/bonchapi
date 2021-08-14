@@ -4,18 +4,16 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.requests import Request
 
-from app.server.core.exceptions.ResponseException import ResponseException
-from app.server.core.AppConfig import AppConfig
-from app.server.core.AppRoutes import AppRoutes
+from server.core.exceptions.ResponseException import ResponseException
+from server.core.AppConfig import AppConfig
+from server.core.AppRoutes import AppRoutes
 
 
 class App:
 
     def __init__(self):
-        self.__subclass_name: str = self.__class__.__name__
         self.config: AppConfig or None = None
         self.routes: AppRoutes or None = None
-        self.versions: list = []
         # self.now_version: SubAppVersion or None = None
         self.__middlewares = [[]]
 
@@ -43,8 +41,8 @@ class App:
                         app.add_middleware(middleware_class=middleware[0], options=middleware[1:])
         self.add_validation_exception_handler(app)  # fix прикола fastapi
         # add all routes in app
-        if self.routes and self.routes.latest:
-            for router in self.routes.latest:
+        if self.routes:
+            for router in self.routes:
                 if router:
                     app.include_router(router.value)
         return app
@@ -56,18 +54,18 @@ class App:
     def add_validation_exception_handler(app: FastAPI):
         @app.exception_handler(RequestValidationError)
         async def validation_exception_handler(r: Request, e: RequestValidationError):
-            return ResponseException().validation_error(r, e)
+            return ResponseException.validation_error(r, e)
 
-    def _configure(self) -> AppConfig:
-        """
-        Сделать свою конфигурацию подприлжения(App)
-
-        :return: AppConfig
-        """
-        app = AppConfig()
-        app.title = "Default docs"
-        app.mount_path = "/"+self.__subclass_name
-        return app
+    # def _configure(self) -> AppConfig:
+    #     """
+    #     Сделать свою конфигурацию подприлжения(App)
+    #
+    #     :return: AppConfig
+    #     """
+    #     app = AppConfig()
+    #     app.title = "Default docs"
+    #     app.mount_path = "/"
+    #     return app
 
     def add_middleware(self, middleware: type, **options: typing.Any):
         self.__middlewares.append([middleware, options])

@@ -1,6 +1,6 @@
 from starlette.responses import JSONResponse
 
-from server.core.models.DefaultResponse import DefaultResponse
+from server.core.models.DefaultResponseModel import DefaultResponseModel
 
 
 class ResponseBuilder:
@@ -10,7 +10,7 @@ class ResponseBuilder:
         """
         Получение шаблона ответа сервера
         """
-        return DefaultResponse(data=data, info=info).dict()
+        return DefaultResponseModel(data=data, info=info).dict()
 
     def result(self, data: dict, info: str = "Все хорошо", status: int = 200) -> JSONResponse:
         """

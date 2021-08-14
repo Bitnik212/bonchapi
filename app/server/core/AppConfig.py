@@ -1,4 +1,4 @@
-from app.server.core.exceptions.ResponseException import ResponseException
+from server.core.exceptions.ResponseException import ResponseException
 
 
 class AppConfig:
@@ -18,9 +18,9 @@ class AppConfig:
         self.root_path: str = ""
         self.openapi_prefix: str = ""
         self.exception_handlers: dict = {
-                422: ResponseException().validation_error, # Не работает (((((
-                404: ResponseException().not_found,
-                501: ResponseException().not_impl,
+                422: ResponseException.validation_error, # Не работает (((((
+                404: ResponseException.not_found,
+                501: ResponseException.not_impl,
             }
 
 
