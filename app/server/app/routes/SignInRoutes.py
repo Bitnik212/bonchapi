@@ -27,7 +27,7 @@ async def sign_in(
     miden = token[1]
     status = token[0]
     if status != 200:
-        return ResponseBuilder().result(data={}, info=miden)
+        return ResponseBuilder().result(data={}, info=miden, status=status)
     else:
         return ResponseBuilder().result(data={
             "miden": miden
