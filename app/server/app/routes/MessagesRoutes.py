@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Form, Header, Query
 
 from bonch.msg import BonchMessage
+from server.app.errors.DefaultErrors import DefaultErrors
+from server.app.errors.MessageHistoryErrors import MessageHistoryErrors
 from server.app.errors.MessagesErrors import MessagesErrors
 from server.core.utils.ResponseBuilder import ResponseBuilder
 
@@ -33,7 +35,7 @@ async def get_in_messages(
     bonch = BonchMessage(miden)
     messages_raw = bonch.get_messages_in(page_start=page_start, page_end=page_end, page=page)
     if messages_raw[0] != 200:
-        return ResponseBuilder().result(data={}, info=messages_raw[1], status=messages_raw[0])
+        return ResponseBuilder().result(data=None, info=messages_raw[1], status=messages_raw[0])
     else:
         return ResponseBuilder().result(data=messages_raw[1], status=messages_raw[0])
 
@@ -62,13 +64,13 @@ async def get_out_messages(
     bonch = BonchMessage(miden)
     messages_raw = bonch.get_messages_out(page_start=page_start, page_end=page_end, page=page)
     if messages_raw[0] != 200:
-        return ResponseBuilder().result(data={}, info=messages_raw[1], status=messages_raw[0])
+        return ResponseBuilder().result(data=None, info=messages_raw[1], status=messages_raw[0])
     else:
         return ResponseBuilder().result(data=messages_raw[1], status=messages_raw[0])
 
 
 @router.get(
-    path="/delete",
+    path="/deleted",
     responses=MessagesErrors().errors,
     tags=["Сообщения"],
     summary="Удаленные сообщения"
@@ -91,14 +93,14 @@ async def get_delete_messages(
     bonch = BonchMessage(miden)
     messages_raw = bonch.get_messages_deleted(page_start=page_start, page_end=page_end, page=page)
     if messages_raw[0] != 200:
-        return ResponseBuilder().result(data={}, info=messages_raw[1], status=messages_raw[0])
+        return ResponseBuilder().result(data=None, info=messages_raw[1], status=messages_raw[0])
     else:
         return ResponseBuilder().result(data=messages_raw[1], status=messages_raw[0])
 
 
 @router.post(
     path="/new",
-    responses=MessagesErrors().errors,
+    responses=DefaultErrors().errors,
     tags=["Сообщения"],
     summary="Отправить сообщения"
 )
@@ -112,12 +114,65 @@ async def new_messages(
         ),
         title: str = Form(..., description="Заголовок сообщения"),
         message: str = Form(..., description="Тело сообщения"),
-        destination_user_id: int = Form(..., description="Id пользователя"),
+        destination_user_id: int = Form(..., alias="destinationUserId", description="Id пользователя"),
         idinfo: int = Form(0, description="Id сообщения с файлами")
 ):
-    """
-        Получить удаленные сообщения. Если указана страница (page), то pageStart и pageEnd игнорируются
-    """
     bonch = BonchMessage(miden)
     message_raw = bonch.new(title=title, message=message, destination_user=destination_user_id, idinfo=idinfo)
-    return ResponseBuilder().result(status=message_raw[0], info=message_raw[1], data={})
+    return ResponseBuilder().result(status=message_raw[0], info=message_raw[1], data=None)
+
+
+@router.post(
+    path="/answer",
+    responses=DefaultErrors().errors,
+    tags=["Сообщения"],
+    summary="Ответить на сообщения"
+)
+async def answer_messages(
+        miden: str = Header(
+            ...,
+            description="Токен для доступа к лк",
+            alias="X-Token-Miden",
+            min_length=32,
+            max_length=34
+        ),
+        message: str = Form(..., description="Тело ответа"),
+        destination_message_id: int = Form(
+            ...,
+            alias="destinationMessageId",
+            description="Id сообщения на которое надо ответить"
+        ),
+        idinfo: int = Form(0, description="Id сообщения с файлами")
+):
+
+    bonch = BonchMessage(miden)
+    message_raw = bonch.answer(message=message, destination_message=destination_message_id, idinfo=idinfo)
+    return ResponseBuilder().result(status=message_raw[0], info=message_raw[1], data=None)
+
+
+@router.get(
+    path="/history",
+    responses=MessageHistoryErrors().errors,
+    tags=["Сообщения"],
+    summary="История сообщения"
+)
+async def history_messages(
+        miden: str = Header(
+            ...,
+            description="Токен для доступа к лк",
+            alias="X-Token-Miden",
+            min_length=32,
+            max_length=34
+        ),
+        message_id: int = Form(
+            ...,
+            alias="messageId",
+            description="Id сообщения для получения его истории"
+        ),
+):
+    bonch = BonchMessage(miden)
+    history_raw = bonch.get_history(message_id)
+    if history_raw[0] == 200:
+        return ResponseBuilder().result(status=history_raw[0], data=history_raw[1])
+    else:
+        return ResponseBuilder().result(status=history_raw[0], info=history_raw[1], data=None)

@@ -51,7 +51,7 @@ class BonchMessage:
         except requests.exceptions.Timeout or requests.exceptions.ReadTimeout:
             return 523, "Не получилось получить страницу сообщений"
 
-    def get_history(self, id: int) -> (int, str):
+    def get_history(self, id: int) -> (int, str or dict):
         """
         Получение истории переписки
 
@@ -72,6 +72,8 @@ class BonchMessage:
             )
             if r.text == "":
                 return 401, "Ошибка доступа"
+            elif len(r.text) < 290:
+                return 401, "Ошибка авторизации"
             else:
                 return 200, json.loads(r.text)
         except:
@@ -101,8 +103,11 @@ class BonchMessage:
         s = requests.Session()
         url = self.link_message
         try:
-            s.post(url, data=data, cookies=self.cookies, headers=self.headers, timeout=self.timeout)
-            return 200, "Сообщение оправлено"
+            r = s.post(url, data=data, cookies=self.cookies, headers=self.headers, timeout=self.timeout)
+            if len(r.text) < 290:
+                return 401, "Ошибка авторизации"
+            else:
+                return 200, "Сообщение оправлено"
         except:
             return 500, "Не получилось получить страницу сообщений"
 
@@ -129,7 +134,10 @@ class BonchMessage:
                 headers=self.headers,
                 timeout=self.timeout
             )
-            return r.status_code, "Сообщение отправлено"
+            if len(r.text) > 280:
+                return 401, "Ошибка авторизации"
+            else:
+                return r.status_code, "Сообщение отправлено"
         except:
             return 500, "Не получилось получить страницу сообщений"
 
@@ -157,6 +165,8 @@ class BonchMessage:
                 cookies=self.cookies,
                 timeout=self.timeout + 10
             )
+            if len(r.text) > 280:
+                return 401, "Ошибка авторизации"
             if r.status_code == 200:
                 text = str(bs(r.text, "html.parser"))
                 is_error = text.find("Ошибка доступа") != -1

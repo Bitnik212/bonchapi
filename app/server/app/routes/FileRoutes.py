@@ -31,6 +31,6 @@ async def load_file(
     file_bytes = await file.read()
     file_raw = bonch.upload_file(file=file_bytes, file_name=file_name, id=idinfo)
     if file_raw[0] != 200:
-        return ResponseBuilder().result(status=file_raw[0], info=file_raw[1], data={})
+        return ResponseBuilder().result(status=file_raw[0], info=file_raw[1], data=None)
     else:
         return ResponseBuilder().result(status=file_raw[0], data=file_raw[1])
