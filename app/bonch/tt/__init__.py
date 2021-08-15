@@ -22,7 +22,7 @@ class BonchTimeTable:
         """
 
         try:
-            r = BonchGetPage(miden).timetable()
+            r = BonchGetPage(miden).timetable_response()
             soup = bs(r.text, "html.parser")
             if r.status_code == 500 or r.status_code == 504:
                 return {"status": 523}
@@ -49,9 +49,9 @@ class BonchTimeTable:
         """
         # todo сделаит обработки событий на все случаи жизни
         if week != 0:
-            r = BonchGetPage(miden).timetable(week)
+            r = BonchGetPage(miden).timetable_response(week)
         else:
-            r = BonchGetPage(miden).timetable()
+            r = BonchGetPage(miden).timetable_response()
         soup = bs(r.text, "html.parser")
         if soup.find(string="Занятий не найдено"):
             resp = {"status": 404}
@@ -315,7 +315,7 @@ class BonchTimeTable:
 
         :return:
         """
-        r = BonchGetPage(self.miden).timetable()
+        r = BonchGetPage(self.miden).timetable_response()
         soup = bs(r.text, "html.parser")
         for i in soup.find_all('a'):
             if (i.get_text() == "Начать занятие"):
