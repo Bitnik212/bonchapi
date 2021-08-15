@@ -93,8 +93,8 @@ class BonchMessage:
         data = {
             "idinfo": idinfo,
             "item": 0,
-            "title": title,
-            "mes_otvet": message,
+            "title": title.encode("windows-1251"),
+            "mes_otvet": message.encode("windows-1251"),
             "adresat": destination_user,
             "saveotv": ""
         }
