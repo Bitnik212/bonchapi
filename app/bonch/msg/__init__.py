@@ -159,12 +159,10 @@ class BonchMessage:
             )
             if r.status_code == 200:
                 text = str(bs(r.text, "html.parser"))
-                try:
-                    is_error = text.rindex("Ошибка доступа") != -1
-                except ValueError:
-                    is_error = False
+                is_error = text.find("Ошибка доступа") != -1
+                is_big_size = text.find('data.idinfo') == -1
 
-                if is_error is False:
+                if is_error is False and is_big_size is False:
                     temp1 = text[text.find('data.idinfo') + 5 + 6 + 4:]
                     idinfo = bs(temp1[:temp1.find('"')], "html.parser").text
                     idinfo = int(idinfo)
@@ -174,6 +172,8 @@ class BonchMessage:
                         "idinfo": idinfo
                     }
                     return r.status_code, return_data
+                elif is_big_size:
+                    return 403, "Файл больше 5мб"
                 else:
                     return 403, "Ошибка доступа"
             else:
