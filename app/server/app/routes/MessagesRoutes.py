@@ -95,3 +95,29 @@ async def get_delete_messages(
     else:
         return ResponseBuilder().result(data=messages_raw[1], status=messages_raw[0])
 
+
+@router.post(
+    path="/new",
+    responses=MessagesErrors().errors,
+    tags=["Сообщения"],
+    summary="Отправить сообщения"
+)
+async def new_messages(
+        miden: str = Header(
+            ...,
+            description="Токен для доступа к лк",
+            alias="X-Token-Miden",
+            min_length=32,
+            max_length=34
+        ),
+        title: str = Form(..., description="Заголовок сообщения"),
+        message: str = Form(..., description="Тело сообщения"),
+        destination_user_id: int = Form(..., description="Id пользователя"),
+        idinfo: int = Form(0, description="Id сообщения с файлами")
+):
+    """
+        Получить удаленные сообщения. Если указана страница (page), то pageStart и pageEnd игнорируются
+    """
+    bonch = BonchMessage(miden)
+    message_raw = bonch.new(title=title, message=message, destination_user=destination_user_id, idinfo=idinfo)
+    return ResponseBuilder().result(status=message_raw[0], info=message_raw[1], data={})
