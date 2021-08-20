@@ -6,6 +6,8 @@ COPY ./app /app
 
 WORKDIR /app
 
-RUN pip install -r /app/requirement.txt
+CMD pwd
+
+RUN pip install -r app/requirement.txt
 
 CMD ["uvicorn", "server.app:server", "--host", "0.0.0.0", "--port", "80"]
