@@ -37,7 +37,7 @@ jobs:
 
       - name: Load docker image to backend server
         run: | 
-         scp -P $BACKEND_SSH_PORT deploy:$BACKEND_SSH_HOSTNAME:/home/deploy/api.bonch.fun/ api.bonch.fun.tar
+         scp -P ${{ secrets.BACKEND_SSH_PORT }} deploy:${{ secrets.BACKEND_SSH_HOSTNAME }}:/home/deploy/api.bonch.fun/ api.bonch.fun.tar
   
   deploy:
     runs-on:  [self-hosted, Home]
