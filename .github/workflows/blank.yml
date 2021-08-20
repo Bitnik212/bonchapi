@@ -6,7 +6,8 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches:
+      - main
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,5 +31,9 @@ jobs:
 
       - name: Load docker image tar file to backend server
         run: | 
-         scp -i $RUNNER_PRIVATE_SSH_KEY -P $BACKEND_SSH_PORT deploy:$BACKEND_SSH_HOSTNAME:/home/deploy/api.bonch.fun/
+         mkdir -p ~/.ssh
+         echo -e "$RUNNER_PRIVATE_SSH_KEY" > ~/.ssh/id_rsa
+         chmod 600 ~/.ssh/id_rsa
+         '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config' 
+         scp -P $BACKEND_SSH_PORT deploy:$BACKEND_SSH_HOSTNAME:/home/deploy/api.bonch.fun/
 
