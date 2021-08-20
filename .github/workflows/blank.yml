@@ -29,15 +29,15 @@ jobs:
          docker build -t api.bonch.fun .
          docker save -o api.bonch.fun.tar api.bonch.fun
         
-      - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v2
-        with:
-          name: docker_image_tar
-          path: api.bonch.fun.tar
+#       - name: 'Upload Artifact'
+#         uses: actions/upload-artifact@v2
+#         with:
+#           name: docker_image_tar
+#           path: api.bonch.fun.tar
 
       - name: Load docker image to backend server
         run: | 
-         scp -P ${{ secrets.BACKEND_SSH_PORT }} deploy:${{ secrets.BACKEND_SSH_HOSTNAME }}:/home/deploy/api.bonch.fun/ api.bonch.fun.tar
+         scp -P ${{ secrets.BACKEND_SSH_PORT }} deploy@${{ secrets.BACKEND_SSH_HOSTNAME }}:/home/deploy/api.bonch.fun/ api.bonch.fun.tar
   
   deploy:
     runs-on:  [self-hosted, Home]
