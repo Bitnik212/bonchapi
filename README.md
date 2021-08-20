@@ -1,5 +1,7 @@
 # bonchapi
 RestAPI бонча
+
+[![CI](https://github.com/Bitnik212/bonchapi/actions/workflows/blank.yml/badge.svg?branch=master)](https://github.com/Bitnik212/bonchapi/actions/workflows/blank.yml)
 ## Функционал
  - Сообщения
    - [x] Прочитать
