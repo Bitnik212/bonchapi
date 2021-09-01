@@ -20,7 +20,7 @@ class Server(App):
         app.version = "0.0.1"
         app.mount_path = "/"
         app.servers = [
-            {"url": "http://127.0.0.1:8000/", "description": "Development server"},
+            {"url": "http://localhost:8000/", "description": "Development server"},
         ]
         return app
 
