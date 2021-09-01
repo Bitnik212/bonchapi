@@ -18,9 +18,9 @@ class BonchMessage:
         self.domain = Settings.domain.value
         self.timeout = Settings.timeout.value
         self.bonch = BonchGetPage(self.miden)
-        self.headers=Settings.headers.value
-        self.cookies = requests.cookies.RequestsCookieJar()
-        self.cookies.set('miden', miden, domain=self.domain, path="/")
+        self.headers = Settings.headers.value
+        self.session = requests.Session()
+        self.session.cookies.set('miden', miden, domain=self.domain, path="/")
         self.link_sendto = "https://" + self.domain + "/cabinet/project/cabinet/forms/sendto2.php"
         self.link_message = "https://" + self.domain + "/cabinet/project/cabinet/forms/message.php"
         self.link_send_new_message = "https://" + self.domain + "/cabinet/project/cabinet/forms/message_create_stud.php"
@@ -37,11 +37,10 @@ class BonchMessage:
             "prosmotr": ""
         }
         try:
-            r = requests.Session().post(
+            r = self.session.post(
                 url=self.link_sendto,
                 data=data,
                 headers=self.headers,
-                cookies=self.cookies,
                 timeout=self.timeout
             )
             if len(r.text) < 400:
@@ -63,11 +62,10 @@ class BonchMessage:
             "history_show": ""
         }
         try:
-            r = requests.Session().post(
+            r = self.session.post(
                 url=self.link_sendto,
                 data=data,
                 headers=self.headers,
-                cookies=self.cookies,
                 timeout=self.timeout
             )
             if r.text == "":
@@ -100,10 +98,9 @@ class BonchMessage:
             "adresat": destination_user,
             "saveotv": ""
         }
-        s = requests.Session()
         url = self.link_message
         try:
-            r = s.post(url, data=data, cookies=self.cookies, headers=self.headers, timeout=self.timeout)
+            r = self.session.post(url, data=data, headers=self.headers, timeout=self.timeout)
             if len(r.text) < 290:
                 return 401, "Ошибка авторизации"
             else:
@@ -127,10 +124,9 @@ class BonchMessage:
             "saveotv": ""
         }
         try:
-            r = requests.Session().post(
+            r = self.session.post(
                 url=self.link_message,
                 data=data,
-                cookies=self.cookies,
                 headers=self.headers,
                 timeout=self.timeout
             )
@@ -157,12 +153,11 @@ class BonchMessage:
             "upload": ""
         }
         try:
-            r = requests.Session().post(
+            r = self.session.post(
                 url=self.link_send_new_message,
                 files={"userfile": file},
                 data=data,
                 headers=self.headers,
-                cookies=self.cookies,
                 timeout=self.timeout + 10
             )
             if len(r.text) > 280:

@@ -38,6 +38,8 @@ class BonchAuth:
         try:
             request = self.session.post(url, auth=data, headers=self.headers, timeout=Settings.timeout.value)
             if request.status_code == 200:
+                # НЕ УДАЛЯТЬ!!!
+                self.session.get(self.login_link, headers=self.headers, timeout=Settings.timeout.value)
                 return (200, miden) if request.text == "1" else (401, "Не верные данные или вход запрещен")
             return 500
         except req.exceptions.ReadTimeout or req.exceptions.Timeout:
