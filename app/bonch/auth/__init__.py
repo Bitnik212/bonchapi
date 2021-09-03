@@ -1,4 +1,5 @@
 import requests as req
+from requests import Response
 
 from bonch import Settings
 
@@ -11,12 +12,15 @@ class BonchAuth:
         self.login_link = "https://" + settings.domain.value + "/cabinet/"
         self.update_link = "https://" + settings.domain.value + "/cabinet/lib/updatesession.php"
         self.headers = settings.headers.value
-
         self.session = req.Session()
         self.user = {
             'login': '',
             'password': ''
         }
+
+    @property
+    def AUTH_MIN_CONTENT_LENGTH(self) -> int:
+        return 300
 
     def sign_in(self, email: str, password: str) -> (int, str):
         """
@@ -58,3 +62,19 @@ class BonchAuth:
         r = req.get(url, headers=self.headers)
         if r.status_code == 200:
             return str(r.cookies['miden'])
+
+    def auth_wrapper(self, r: Response or None) -> (int, Response.text or None):
+        """
+        Обертка для проверки на авторизацию\r\n
+        Использовать только для страниц!!!
+        """
+        if r:
+            if r.status_code == 200:
+                if len(r.text) > self.AUTH_MIN_CONTENT_LENGTH:
+                    return r.status_code, r.text
+                else:
+                    return 401, r.text
+            else:
+                return r.status_code, r.text
+        else:
+            return 500
