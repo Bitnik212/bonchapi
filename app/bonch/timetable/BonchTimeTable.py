@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from yaml import warnings
 
-from app.bonch.BonchGetPage import BonchGetPage
+from bonch.BonchGetPage import BonchGetPage
 from bonch import Settings
 from bonch.auth import BonchAuth
 from bonch.timetable.BonchTimeTableParser import BonchTimeTableParser

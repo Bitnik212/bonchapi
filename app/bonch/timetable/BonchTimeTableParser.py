@@ -3,9 +3,8 @@ from bs4 import BeautifulSoup
 from bonch import Settings
 import datetime
 
-from bonch.BonchGetPage import BonchGetPage
 from bonch.auth import BonchAuth
-from bonch.timetable.BonchTimeTableItemModel import BonchTimeTableItem
+from bonch.timetable.BonchTimeTableItemModel import BonchTimeTableItem, BonchTimeTableItemModel
 
 
 class BonchTimeTableParser:
@@ -43,13 +42,13 @@ class BonchTimeTableParser:
             if soup.find(string=self.__now_date).parent.parent.parent.next_sibling.next_sibling == \
                     soup.find_all('tr', attrs={'style': 'background: #FF9933 !important '})[0]:
                 for item in soup.find_all('tr', attrs={'style': 'background: #FF9933 !important '}):
-                    resp.append(dict(self.__parse_item(item, self.__reverse_now_date)))
+                    resp.append(self.__parse_item(item, self.__reverse_now_date))
             return resp
         except IndexError:
             return None
 
     @staticmethod
-    def __parse_item(item: BeautifulSoup, revnowdate: str) -> BonchTimeTableItem().Model:
+    def __parse_item(item: BeautifulSoup, revnowdate: str) -> BonchTimeTableItemModel:
         """
         Парсер пары
 
@@ -121,13 +120,13 @@ class BonchTimeTableParser:
         if startedat is None:
             ended = False
 
-        return BonchTimeTableItem().Model(
+        return BonchTimeTableItemModel(
             time=BonchTimeTableItem().TimeModel(
                 raw=paratime,
-                parsed=BonchTimeTableItem.TimeParsedModel(
-                    start=paratimeparsed[0],
-                    end=paratimeparsed[1]
-                )
+                parsed=[
+                    paratimeparsed[0],
+                    paratimeparsed[1]
+                ]
             ),
             number=para,
             name=itemname,
