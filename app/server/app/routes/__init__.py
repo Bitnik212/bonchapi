@@ -1,10 +1,13 @@
 from enum import Enum
 
-from server.app.routes import SignInRoutes, MessagesRoutes, FileRoutes
+from fastapi import APIRouter
+
+from server.app.routes import SignInRoutes, MessagesRoutes, FileRoutes, ScheduleRoutes
 
 
 class ServerRoutes(Enum):
-    signIn = SignInRoutes.router
-    messages = MessagesRoutes.router
-    files = FileRoutes.router
+    signIn: APIRouter = SignInRoutes.router
+    messages: APIRouter = MessagesRoutes.router
+    files: APIRouter = FileRoutes.router
+    schedule: APIRouter = ScheduleRoutes.router
 

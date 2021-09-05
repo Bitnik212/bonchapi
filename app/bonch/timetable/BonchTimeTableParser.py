@@ -12,7 +12,7 @@ class BonchTimeTableParser:
     def __init__(self):
         self.domain = Settings.domain.value
         self.auth_wrapper = BonchAuth().auth_wrapper
-        self.days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
+        self.days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
 
     @property
     def __now_date(self) -> str:
@@ -45,6 +45,8 @@ class BonchTimeTableParser:
                     resp.append(self.__parse_item(item, self.__reverse_now_date))
             return resp
         except IndexError:
+            return None
+        except AttributeError:
             return None
 
     @staticmethod
@@ -151,7 +153,7 @@ class BonchTimeTableParser:
         :return: list
         """
         try:
-            resp = {day: "" for day in self.days}
+            resp = {day: None for day in self.days}
             trigger = True
             now_item_name = now_item_date = ""
             tbody = soup.find("tbody", attrs={'style': 'text-shadow:none;'})

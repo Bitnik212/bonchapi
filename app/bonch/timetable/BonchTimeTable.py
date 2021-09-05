@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from yaml import warnings
+import datetime as dt
 
 from bonch.BonchGetPage import BonchGetPage
 from bonch import Settings
@@ -15,21 +15,40 @@ class BonchTimeTable:
         self.auth_wrapper = BonchAuth().auth_wrapper
         self.page = BonchGetPage(miden)
 
-    def day(self) -> (int, list or str):
+    @property
+    def PARSER_TYPE(self) -> str:
+        return "html.parser"
+
+    @property
+    def __now_day_number(self) -> int:
+        return dt.datetime.now().weekday()
+
+    @property
+    def __now_day_number_iso(self) -> int:
+        return dt.datetime.now().isoweekday()
+
+    def day(self, day_number: int = 0, week_number: int = 0) -> (int, list or str):
         """
         Расписания на день
         """
-        status_code, response_text = self.auth_wrapper(self.page.timetable_response())
+        status_code, response_text = self.auth_wrapper(self.page.timetable_response(week_number))
         if status_code == 200:
-            parsed = self.parse.day(BeautifulSoup(response_text, "html.parser"))
+            parsed = self.parse.week(BeautifulSoup(response_text, self.PARSER_TYPE))
             if parsed:
-                return status_code, parsed
+                if week_number or day_number:
+                    parsed = parsed[self.parse.days[day_number-1]]
+                else:
+                    parsed = parsed[self.parse.days[self.__now_day_number]]
+                if parsed == "":
+                    return 404, "Не нашел расписания на этот день"
+                else:
+                    return status_code, parsed
             else:
-                return 404, "Не нашел расписания на этот день"
+                return 500, "Не получилось спарсить расписания на этот день"
         else:
             return status_code, ""
 
-    def week(self, week: int = 0) -> (int, list or str):
+    def week(self, week: int = 0) -> (int, dict or str):
         """
         Получение страницы с раписанием и само расписание на неделю
 
@@ -37,7 +56,7 @@ class BonchTimeTable:
         """
         status_code, response_text = self.auth_wrapper(self.page.timetable_response(week))
         if status_code == 200:
-            soup = BeautifulSoup(response_text, "html.parser")
+            soup = BeautifulSoup(response_text, self.PARSER_TYPE)
             if soup.find(string="Занятий не найдено"):
                 return 404, "Занятий не найдено"
             else:
@@ -49,12 +68,12 @@ class BonchTimeTable:
         else:
             return status_code, ""
 
-    def otmetka(self, raspId: str = "", week_number: str = "") -> (int, str):
+    def otmetka(self, schedule_id: str = "", week_number: str = "") -> (int, str):
         """
         отметка на паре
         """
-        # TODO Нужно протестить и похоошему сделать нормально
-        if bool(raspId) and bool(week_number) is False:
+        # TODO Нужно протестить и похорошему сделать нормально
+        if bool(schedule_id) and bool(week_number) is False:
             r = self.page.timetable_response()
             status_code, response_text = self.auth_wrapper(r)
             if status_code == 200:
@@ -77,7 +96,7 @@ class BonchTimeTable:
                         continue
             return 200, "Усепшно отмечен"
         else:
-            self.__send_otmetka(raspId, week_number)
+            self.__send_otmetka(schedule_id, week_number)
             return 200, "Усепшно отмечен"
 
     @staticmethod
