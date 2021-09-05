@@ -167,12 +167,38 @@ async def history_messages(
         message_id: int = Form(
             ...,
             alias="messageId",
-            description="Id сообщения для получения его истории"
+            description="Id сообщения"
         ),
 ):
     bonch = BonchMessage(miden)
-    history_raw = bonch.get_history(message_id)
+    history_raw = bonch.history(message_id)
     if history_raw[0] == 200:
         return ResponseBuilder().result(status=history_raw[0], data=history_raw[1])
     else:
         return ResponseBuilder().result(status=history_raw[0], info=history_raw[1], data=None)
+
+@router.get(
+    path="/read",
+    tags=["Сообщения"],
+    summary="Прочитать сообщение",
+    responses=MessagesErrors().errors,
+)
+async def read_message(
+    miden: str = Header(
+        ...,
+        description="Токен для доступа к лк",
+        alias="X-Token-Miden",
+        min_length=32,
+        max_length=34
+    ),
+    id: int = Query(
+        ...,
+        alias="messageId",
+        description="Id сообщения"
+    ),
+):
+    message = BonchMessage(miden).read(id=id)
+    if message[0] == 200:
+        return ResponseBuilder().result(data=message[1])
+    else:
+        return ResponseBuilder().result(data=None, status=message[0], info=message[1])
