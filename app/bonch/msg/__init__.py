@@ -1,7 +1,11 @@
+import time
+
 from bs4 import BeautifulSoup as bs
 import requests
 import json
 import io
+
+from requests import Response
 
 from bonch.BonchGetPage import BonchGetPage
 from bonch import Settings
@@ -25,6 +29,15 @@ class BonchMessage:
         self.link_message = "https://" + self.domain + "/cabinet/project/cabinet/forms/message.php"
         self.link_send_new_message = "https://" + self.domain + "/cabinet/project/cabinet/forms/message_create_stud.php"
 
+    @staticmethod
+    def message_auth_wrapper(r: Response) -> (int, str):
+        if r.text == "":
+            return 403, "Ошибка доступа"
+        elif r.text.find("putsessionvalue") != -1:
+            return 401, "Ошибка авторизации"
+        else:
+            return 200, r.text
+
     def read(self, id: int) -> (int, dict or str):
         """
         Прочитать сообщение
@@ -43,19 +56,19 @@ class BonchMessage:
                 headers=self.headers,
                 timeout=self.timeout
             )
-            if len(r.text) < 400:
-                return 401, "Ошибка доступа"
+            status_code, response_text = self.message_auth_wrapper(r)
+            if status_code == 200:
+                return status_code, json.loads(r.text)
             else:
-                return 200, json.loads(r.text)
+                return status_code, response_text
         except requests.exceptions.Timeout or requests.exceptions.ReadTimeout:
             return 523, "Не получилось получить страницу сообщений"
 
-    def get_history(self, id: int) -> (int, str or dict):
+    def history(self, id: int) -> (int, str or dict):
         """
         Получение истории переписки
 
-        :param id:
-        :return: dict
+        :param id: id сообщения
         """
         data = {
             "id": id,
@@ -68,12 +81,11 @@ class BonchMessage:
                 headers=self.headers,
                 timeout=self.timeout
             )
-            if r.text == "":
-                return 401, "Ошибка доступа"
-            elif len(r.text) < 290:
-                return 401, "Ошибка авторизации"
+            status_code, response_text = self.message_auth_wrapper(r)
+            if status_code == 200:
+                return status_code, json.loads(r.text)
             else:
-                return 200, json.loads(r.text)
+                return status_code, response_text
         except:
             return 500, "Не получилось получить историю сообщений"
 
@@ -189,7 +201,7 @@ class BonchMessage:
     def __get_file_link_by_idinfo(self, idinfo: int, file_name: str) -> str:
         return "https://" + self.domain + "/cabinet/ini/subconto/sendto/101/" + str(idinfo) + "/" + file_name
 
-    def get_messages_in(self, page_start: int = 1, page_end: int = 2, page: int = 0) -> (int, list[dict]):
+    def get_messages_in(self, page_start: int = 1, page_end: int = 2, page: int = 0) -> (int, list[dict] or str):
         """
         Получение входящих сообщений на определенной странице.
         Можно указать кокретную страницу либо указать с какой по какую.
@@ -200,8 +212,11 @@ class BonchMessage:
                 r = self.bonch.messages_in_response(page_number)
                 if r:
                     soup = bs(r.text, "html.parser")
-                    for msg in self.__messages_parser(soup):
-                        resp.append(msg)
+                    msgs = self.__messages_parser(soup)
+                    if msgs:
+                        for msg in msgs:
+                            resp.append(msg)
+                time.sleep(.5)
         else:
             r = self.bonch.messages_in_response(page)
             soup = bs(r.text, "html.parser")
@@ -209,14 +224,16 @@ class BonchMessage:
         if resp:
             return 200, resp
         else:
-            return 500, "Не получилось получить страницу сообщений"
+            return 404, "Нет сообщений"
 
-    def __messages_parser(self, soup) -> list[dict]:
+    def __messages_parser(self, soup) -> list[dict] or None:
         """
         парсер
         """
         table = soup.find("table", attrs={"class": "simple-little-table"})
         msgs = []
+        if str(table).find("Сообщений не найдено") != -1:
+            return None
         for msg in table.tbody.find_all("tr"):
             try:
                 int(msg["id"].replace("tr_", ""))
@@ -232,8 +249,10 @@ class BonchMessage:
                 r = self.bonch.messages_out_response(page_number)
                 if r:
                     soup = bs(r.text, "html.parser")
-                    for msg in self.__messages_parser(soup):
-                        resp.append(msg)
+                    msgs = self.__messages_parser(soup)
+                    if msgs:
+                        for msg in msgs:
+                            resp.append(msg)
         else:
             r = self.bonch.messages_out_response(page)
             soup = bs(r.text, "html.parser")
@@ -250,8 +269,10 @@ class BonchMessage:
                 r = self.bonch.messages_delete_response(page_number)
                 if r:
                     soup = bs(r.text, "html.parser")
-                    for msg in self.__messages_parser(soup):
-                        resp.append(msg)
+                    msgs = self.__messages_parser(soup)
+                    if msgs:
+                        for msg in msgs:
+                            resp.append(msg)
         else:
             r = self.bonch.messages_delete_response(page)
             soup = bs(r.text, "html.parser")
@@ -259,7 +280,7 @@ class BonchMessage:
         if resp:
             return 200, resp
         else:
-            return 500, "Не получилось получить страницу сообщений"
+            return 404, "Нет сообщений"
 
     @staticmethod
     def __parse_message(soup):
