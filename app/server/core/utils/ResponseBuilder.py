@@ -63,3 +63,7 @@ class ResponseBuilder:
         data = self.__get_response_schema(data={}, info=info)
         return JSONResponse(status_code=status, content=data)
 
+    def bad_request(self, info: str = "Не правельный запрос") -> JSONResponse:
+        status = 400
+        data = self.__get_response_schema(data={}, info=info)
+        return JSONResponse(status_code=status, content=data)
