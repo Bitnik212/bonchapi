@@ -19,3 +19,4 @@ class Settings(Enum):
         description="Токен для доступа к лк",
         alias="X-Token-Miden",
     )
+    bs_parser_type = "html.parser"

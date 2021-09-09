@@ -59,7 +59,7 @@ async def get_out_messages(
     Получить исходяшие сообщения. Если указана страница (page), то pageStart и pageEnd игнорируются
     """
     bonch = BonchMessage(miden)
-    messages_raw = bonch.get_messages_out(page_start=page_start, page_end=page_end, page=page)
+    messages_raw = bonch.messages_out(page_start=page_start, page_end=page_end, page=page)
     if messages_raw[0] != 200:
         return ResponseBuilder().result(data=None, info=messages_raw[1], status=messages_raw[0])
     else:
@@ -82,7 +82,7 @@ async def get_delete_messages(
         Получить удаленные сообщения. Если указана страница (page), то pageStart и pageEnd игнорируются
     """
     bonch = BonchMessage(miden)
-    messages_raw = bonch.get_messages_deleted(page_start=page_start, page_end=page_end, page=page)
+    messages_raw = bonch.messages_deleted(page_start=page_start, page_end=page_end, page=page)
     if messages_raw[0] != 200:
         return ResponseBuilder().result(data=None, info=messages_raw[1], status=messages_raw[0])
     else:
