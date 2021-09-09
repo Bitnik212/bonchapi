@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Form, Header, Query
 
-from bonch.msg import BonchMessage
+from bonch import Settings
+from bonch.msg.BonchMessage import BonchMessage
 from server.app.errors.DefaultErrors import DefaultErrors
 from server.app.errors.MessageHistoryErrors import MessageHistoryErrors
 from server.app.errors.MessagesErrors import MessagesErrors
@@ -8,6 +9,14 @@ from server.core.utils.ResponseBuilder import ResponseBuilder
 
 router = APIRouter(
     prefix="/messages"
+)
+
+miden_key: str = Header(
+    ...,
+    description="Токен для доступа к лк",
+    alias="X-Token-Miden",
+    min_length=32,
+    max_length=34
 )
 
 
@@ -18,13 +27,7 @@ router = APIRouter(
     summary="Входящие сообщения"
 )
 async def get_in_messages(
-        miden: str = Header(
-            ...,
-            description="Токен для доступа к лк",
-            alias="X-Token-Miden",
-            min_length=32,
-            max_length=34
-        ),
+        miden=Settings.miden_key.value,
         page_start: int = Query(1, alias="pageStart", description="Получить с такой-то страницы"),
         page_end: int = Query(2, alias="pageEnd", description="Получить до такой-то страницы"),
         page: int = Query(0, alias="page", description="Получить определенную страницу")
@@ -33,11 +36,11 @@ async def get_in_messages(
     Получить входящие сообщения. Если указана страница (page), то pageStart и pageEnd игнорируются
     """
     bonch = BonchMessage(miden)
-    messages_raw = bonch.get_messages_in(page_start=page_start, page_end=page_end, page=page)
-    if messages_raw[0] != 200:
-        return ResponseBuilder().result(data=None, info=messages_raw[1], status=messages_raw[0])
+    messages_tuple = bonch.messages_in(page_start=page_start, page_end=page_end, page=page)
+    if messages_tuple[0] != 200:
+        return ResponseBuilder().result(data=None, info=messages_tuple[1], status=messages_tuple[0])
     else:
-        return ResponseBuilder().result(data=messages_raw[1], status=messages_raw[0])
+        return ResponseBuilder().result(data=messages_tuple[1], status=messages_tuple[0])
 
 
 @router.get(
@@ -47,13 +50,7 @@ async def get_in_messages(
     summary="Исходящие сообщения"
 )
 async def get_out_messages(
-        miden: str = Header(
-            ...,
-            description="Токен для доступа к лк",
-            alias="X-Token-Miden",
-            min_length=32,
-            max_length=34
-        ),
+        miden=Settings.miden_key.value,
         page_start: int = Query(1, alias="pageStart", description="Получить с такой-то страницы"),
         page_end: int = Query(2, alias="pageEnd", description="Получить до такой-то страницы"),
         page: int = Query(0, alias="page", description="Получить определенную страницу")
@@ -76,13 +73,7 @@ async def get_out_messages(
     summary="Удаленные сообщения"
 )
 async def get_delete_messages(
-        miden: str = Header(
-            ...,
-            description="Токен для доступа к лк",
-            alias="X-Token-Miden",
-            min_length=32,
-            max_length=34
-        ),
+        miden=Settings.miden_key.value,
         page_start: int = Query(1, alias="pageStart", description="Получить с такой-то страницы"),
         page_end: int = Query(2, alias="pageEnd", description="Получить до такой-то страницы"),
         page: int = Query(0, alias="page", description="Получить определенную страницу")
@@ -105,13 +96,7 @@ async def get_delete_messages(
     summary="Отправить сообщения"
 )
 async def new_messages(
-        miden: str = Header(
-            ...,
-            description="Токен для доступа к лк",
-            alias="X-Token-Miden",
-            min_length=32,
-            max_length=34
-        ),
+        miden=Settings.miden_key.value,
         title: str = Form(..., description="Заголовок сообщения"),
         message: str = Form(..., description="Тело сообщения"),
         destination_user_id: int = Form(..., alias="destinationUserId", description="Id пользователя"),
@@ -129,13 +114,7 @@ async def new_messages(
     summary="Ответить на сообщения"
 )
 async def answer_messages(
-        miden: str = Header(
-            ...,
-            description="Токен для доступа к лк",
-            alias="X-Token-Miden",
-            min_length=32,
-            max_length=34
-        ),
+        miden=Settings.miden_key.value,
         message: str = Form(..., description="Тело ответа"),
         destination_message_id: int = Form(
             ...,
@@ -144,7 +123,6 @@ async def answer_messages(
         ),
         idinfo: int = Form(0, description="Id сообщения с файлами")
 ):
-
     bonch = BonchMessage(miden)
     message_raw = bonch.answer(message=message, destination_message=destination_message_id, idinfo=idinfo)
     return ResponseBuilder().result(status=message_raw[0], info=message_raw[1], data=None)
@@ -157,13 +135,7 @@ async def answer_messages(
     summary="История сообщения"
 )
 async def history_messages(
-        miden: str = Header(
-            ...,
-            description="Токен для доступа к лк",
-            alias="X-Token-Miden",
-            min_length=32,
-            max_length=34
-        ),
+        miden=Settings.miden_key.value,
         message_id: int = Form(
             ...,
             alias="messageId",
@@ -177,6 +149,7 @@ async def history_messages(
     else:
         return ResponseBuilder().result(status=history_raw[0], info=history_raw[1], data=None)
 
+
 @router.get(
     path="/read",
     tags=["Сообщения"],
@@ -184,18 +157,12 @@ async def history_messages(
     responses=MessagesErrors().errors,
 )
 async def read_message(
-    miden: str = Header(
-        ...,
-        description="Токен для доступа к лк",
-        alias="X-Token-Miden",
-        min_length=32,
-        max_length=34
-    ),
-    id: int = Query(
-        ...,
-        alias="messageId",
-        description="Id сообщения"
-    ),
+        miden=Settings.miden_key.value,
+        id: int = Query(
+            ...,
+            alias="messageId",
+            description="Id сообщения"
+        ),
 ):
     message = BonchMessage(miden).read(id=id)
     if message[0] == 200:
