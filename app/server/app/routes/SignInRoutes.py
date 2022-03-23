@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Form
 
-from bonch.auth import BonchAuth
-from server.core.models.HTTPErrors import HTTPErrors
-from server.core.utils.ResponseBuilder import ResponseBuilder
+from app.bonch.auth import BonchAuth
+from app.server.core.models.HTTPErrors import HTTPErrors
+from app.server.core.utils.ResponseBuilder import ResponseBuilder
 
 """
 Авторизация пользователя

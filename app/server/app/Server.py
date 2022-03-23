@@ -1,8 +1,8 @@
 from enum import Enum
 
-from server.app.routes import ServerRoutes
-from server.core.App import App
-from server.core.AppConfig import AppConfig
+from app.server.app.routes import ServerRoutes
+from app.server.core.App import App
+from app.server.core.AppConfig import AppConfig
 
 
 class Server(App):

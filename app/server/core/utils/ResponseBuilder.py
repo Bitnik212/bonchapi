@@ -1,6 +1,6 @@
 from starlette.responses import JSONResponse
 
-from server.core.models.DefaultResponseModel import DefaultResponseModel
+from app.server.core.models.DefaultResponseModel import DefaultResponseModel
 
 
 class ResponseBuilder:

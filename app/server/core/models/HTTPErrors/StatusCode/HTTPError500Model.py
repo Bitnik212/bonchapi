@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from server.core.models.DefaultResponseModel import DefaultResponseModel
+from app.server.core.models.DefaultResponseModel import DefaultResponseModel
 
 
 class HTTPError500Model(DefaultResponseModel):

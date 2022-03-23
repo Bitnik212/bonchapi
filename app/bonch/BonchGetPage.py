@@ -1,5 +1,5 @@
 import requests
-from Settings import Settings
+from app.bonch import Settings
 
 
 class BonchGetPage:
