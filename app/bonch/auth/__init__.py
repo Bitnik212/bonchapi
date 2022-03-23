@@ -1,7 +1,7 @@
 import requests as req
 from requests import Response
 
-from bonch import Settings
+from app.bonch import Settings
 
 
 class BonchAuth:

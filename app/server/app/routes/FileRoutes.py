@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Form, Header, Query, UploadFile, File
 
+from bonch import Settings
 from bonch.msg import BonchMessage
 from server.app.errors.ServerErrors.FilesErrors import FilesErrors
 from server.core.utils.ResponseBuilder import ResponseBuilder
@@ -16,13 +17,7 @@ router = APIRouter(
     responses=FilesErrors().errors
 )
 async def load_file(
-        miden: str = Header(
-            ...,
-            description="Токен для доступа к лк",
-            alias="X-Token-Miden",
-            min_length=32,
-            max_length=34
-        ),
+        miden=Settings.miden_key.value,
         file_name: str = Form(..., description="Название файла", alias="fileName"),
         file: UploadFile = File(..., description="Файл"),
         idinfo: int = Form(0, description="Id сообщения к которому добавить файл")

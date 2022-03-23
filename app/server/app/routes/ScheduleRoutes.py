@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Form, Header, Query
 
+from bonch import Settings
 from server.app.errors.DefaultErrors import DefaultErrors
 from server.core.utils.ResponseBuilder import ResponseBuilder
 
@@ -16,13 +17,7 @@ router = APIRouter(
     responses=DefaultErrors().errors
 )
 async def get_day_schedule(
-    miden: str = Header(
-        ...,
-        description="Токен для доступа к лк",
-        alias="X-Token-Miden",
-        min_length=32,
-        max_length=34
-    ),
+    miden=Settings.miden_key.value,
     day: int = Query(0, description="Номер дня в недели начинается с 1 по 7 включительно"),
     week: int = Query(0, description="Номер учебной недели начинается с 1 по 54 включительно"),
 ):
@@ -45,13 +40,7 @@ async def get_day_schedule(
     responses=DefaultErrors().errors
 )
 async def get_week_schedule(
-    miden: str = Header(
-        ...,
-        description="Токен для доступа к лк",
-        alias="X-Token-Miden",
-        min_length=32,
-        max_length=34
-    ),
+    miden=Settings.miden_key.value,
     number: int = Query(0, description="Номер учебной недели начинается с 1 по 54 включительно"),
 ):
     week = BonchTimeTable(miden).week(number)
