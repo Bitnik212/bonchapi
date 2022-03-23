@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -8,10 +8,11 @@ class BonchMessageModel(BaseModel):
         name: str = Field(description="Название файла")
         href: str = Field(description="Ссылка на файл")
 
-    id: int = Field(description="Id сообщения")
+    id: Optional[int] = Field(description="Id сообщения")
     readed: bool = Field(description="Прочитано ли сообщение")
-    sender: str = Field(description="Отправитель")
-    date: str = Field(description="Дата сообщения")
-    time: str = Field(description="Время сообщения")
+    sender: Optional[str] = Field(description="Отправитель")
+    date: Optional[str] = Field(description="Дата сообщения")
+    time: Optional[str] = Field(description="Время сообщения")
     title: str = Field(description="Заголовок сообщения")
-    files: List[Files] = Field(description="Файлы сообщения. Могут быть пустыми. none не используется")
+    files: Optional[List[Files]] = Field(description="Файлы сообщения. Могут быть пустыми. none не используется")
+    message: Optional[str] = Field(description="Содержимое сообщения")

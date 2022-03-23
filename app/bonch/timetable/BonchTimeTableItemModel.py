@@ -2,6 +2,7 @@ from typing import Type, NamedTuple, Union, List
 
 from pydantic import BaseModel
 
+
 class BonchTimeTableItem:
     class TimeModel(BaseModel):
         raw: str
@@ -14,6 +15,7 @@ class BonchTimeTableItem:
     class BuildingModel(NamedTuple):
         cabinet: str
         building: str
+
 
 class BonchTimeTableItemModel(BaseModel):
     number: str

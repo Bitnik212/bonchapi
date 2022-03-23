@@ -62,13 +62,3 @@ class BonchMessageParser:
                 href=file['href']
             ) for file in files]
         )
-
-        # return {
-        #         "id": int(id),
-        #         "readed": readed,
-        #         "sender": sender,
-        #         "date": date,
-        #         "time": time,
-        #         "title": title,
-        #         "files": files
-        #     }

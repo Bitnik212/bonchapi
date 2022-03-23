@@ -1,10 +1,12 @@
+import io
+import json
+import requests
+import time
 from bs4 import BeautifulSoup as bs
-import requests, json, io, time
-
 from requests import Response
 
-from app.bonch.BonchGetPage import BonchGetPage
 from app.bonch import Settings
+from app.bonch.BonchGetPage import BonchGetPage
 from app.bonch.msg.BonchMessageModel import BonchMessageModel
 from app.bonch.msg.BonchMessageParser import BonchMessageParser
 
@@ -12,21 +14,20 @@ from app.bonch.msg.BonchMessageParser import BonchMessageParser
 class BonchMessage:
 
     def __init__(self, miden: str):
-        self.miden = miden
-        self.bonch = BonchGetPage(self.miden)
-        self.session = requests.Session()
-        self.session.cookies.set('miden', miden, domain=self.domain, path="/")
-
-    timeout = Settings.timeout.value
-    headers = Settings.headers.value
-    domain = Settings.domain.value
-    link_sendto = "https://" + domain + "/cabinet/project/cabinet/forms/sendto2.php"
-    link_message = "https://" + domain + "/cabinet/project/cabinet/forms/message.php"
-    link_send_new_message = "https://" + domain + "/cabinet/project/cabinet/forms/message_create_stud.php"
-    parse = BonchMessageParser()
+        self.__miden = miden
+        self.__bonch = BonchGetPage(self.__miden)
+        self.__session = requests.Session()
+        self.__domain = Settings.domain.value
+        self.__session.cookies.set('miden', miden, domain=self.__domain, path="/")
+        self.__timeout = Settings.timeout.value
+        self.__headers = Settings.headers.value
+        self.__link_sendto = "https://" + self.__domain + "/cabinet/project/cabinet/forms/sendto2.php"
+        self.__link_message = "https://" + self.__domain + "/cabinet/project/cabinet/forms/message.php"
+        self.__link_send_new_message = "https://" + self.__domain + "/cabinet/project/cabinet/forms/message_create_stud.php"
+        self.__parser = BonchMessageParser()
 
     @staticmethod
-    def message_auth_wrapper(r: Response) -> (int, str):
+    def __message_auth_wrapper(r: Response) -> (int, str):
         if r.text == "":
             return 403, "Ошибка доступа"
         elif r.text.find("putsessionvalue") != -1:
@@ -35,13 +36,13 @@ class BonchMessage:
             return 200, r.text
 
     def __message_request(self, data: dict) -> (int, dict or str):
-        r = self.session.post(
-            url=self.link_sendto,
+        r = self.__session.post(
+            url=self.__link_sendto,
             data=data,
-            headers=self.headers,
-            timeout=self.timeout
+            headers=self.__headers,
+            timeout=self.__timeout
         )
-        status_code, response_text = self.message_auth_wrapper(r)
+        status_code, response_text = self.__message_auth_wrapper(r)
         if status_code == 200:
             return status_code, json.loads(r.text)
         else:
@@ -59,7 +60,16 @@ class BonchMessage:
             "prosmotr": ""
         }
         try:
-            return self.__message_request(data)
+            status_code, result = self.__message_request(data)
+            return BonchMessageModel(
+                id=id,
+                readed=True,
+                sender=None,
+                date=None,
+                time=None,
+                title=result["name"],
+                message=result["annotation"]
+            )
         except requests.exceptions.Timeout or requests.exceptions.ReadTimeout:
             return 523, "Не получилось получить страницу сообщений"
 
@@ -99,9 +109,9 @@ class BonchMessage:
             "adresat": destination_user,
             "saveotv": ""
         }
-        url = self.link_message
+        url = self.__link_message
         try:
-            r = self.session.post(url, data=data, headers=self.headers, timeout=self.timeout)
+            r = self.__session.post(url, data=data, headers=self.__headers, timeout=self.__timeout)
             if len(r.text) < 290:
                 return 401, "Ошибка авторизации"
             else:
@@ -125,11 +135,11 @@ class BonchMessage:
             "saveotv": ""
         }
         try:
-            r = self.session.post(
-                url=self.link_message,
+            r = self.__session.post(
+                url=self.__link_message,
                 data=data,
-                headers=self.headers,
-                timeout=self.timeout
+                headers=self.__headers,
+                timeout=self.__timeout
             )
             if len(r.text) > 280:
                 return 401, "Ошибка авторизации"
@@ -154,12 +164,12 @@ class BonchMessage:
             "upload": ""
         }
         try:
-            r = self.session.post(
-                url=self.link_send_new_message,
+            r = self.__session.post(
+                url=self.__link_send_new_message,
                 files={"userfile": file},
                 data=data,
-                headers=self.headers,
-                timeout=self.timeout + 10
+                headers=self.__headers,
+                timeout=self.__timeout + 10
             )
             if len(r.text) > 280:
                 return 401, "Ошибка авторизации"
@@ -188,7 +198,7 @@ class BonchMessage:
             return 500, "Произошла ошибка"
 
     def __get_file_link_by_idinfo(self, idinfo: int, file_name: str) -> str:
-        return "https://" + self.domain + "/cabinet/ini/subconto/sendto/101/" + str(idinfo) + "/" + file_name
+        return "https://" + self.__domain + "/cabinet/ini/subconto/sendto/101/" + str(idinfo) + "/" + file_name
 
     def messages_in(self, page_start: int = 1, page_end: int = 2, page: int = 0) -> (int, list[BonchMessageModel] or str):
         """
@@ -198,18 +208,18 @@ class BonchMessage:
         resp = []
         if bool(page) is False:
             for page_number in range(page_start, page_end):
-                r = self.bonch.messages_in_response(page_number)
+                r = self.__bonch.messages_in_response(page_number)
                 if r:
                     soup = bs(r.text, Settings.bs_parser_type.value)
-                    msgs = self.parse.messages(soup)
+                    msgs = self.__parser.messages(soup)
                     if msgs:
                         for msg in msgs:
                             resp.append(msg)
                 time.sleep(.5)
         else:
-            r = self.bonch.messages_in_response(page)
+            r = self.__bonch.messages_in_response(page)
             soup = bs(r.text, Settings.bs_parser_type.value)
-            resp = self.parse.messages(soup)
+            resp = self.__parser.messages(soup)
         if resp:
             return 200, resp
         else:
@@ -219,17 +229,17 @@ class BonchMessage:
         resp = []
         if bool(page) is False:
             for page_number in range(page_start, page_end):
-                r = self.bonch.messages_out_response(page_number)
+                r = self.__bonch.messages_out_response(page_number)
                 if r:
                     soup = bs(r.text, Settings.bs_parser_type.value)
-                    msgs = self.parse.messages(soup)
+                    msgs = self.__parser.messages(soup)
                     if msgs:
                         for msg in msgs:
                             resp.append(msg)
         else:
-            r = self.bonch.messages_out_response(page)
+            r = self.__bonch.messages_out_response(page)
             soup = bs(r.text, Settings.bs_parser_type.value)
-            resp = self.parse.messages(soup)
+            resp = self.__parser.messages(soup)
         if resp:
             return 200, resp
         else:
@@ -239,17 +249,17 @@ class BonchMessage:
         resp = []
         if bool(page) is False:
             for page_number in range(page_start, page_end):
-                r = self.bonch.messages_delete_response(page_number)
+                r = self.__bonch.messages_delete_response(page_number)
                 if r:
                     soup = bs(r.text, Settings.bs_parser_type.value)
-                    msgs = self.parse.messages(soup)
+                    msgs = self.__parser.messages(soup)
                     if msgs:
                         for msg in msgs:
                             resp.append(msg)
         else:
-            r = self.bonch.messages_delete_response(page)
+            r = self.__bonch.messages_delete_response(page)
             soup = bs(r.text, Settings.bs_parser_type.value)
-            resp = self.parse.messages(soup)
+            resp = self.__parser.messages(soup)
         if resp:
             return 200, resp
         else:
