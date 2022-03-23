@@ -1,6 +1,8 @@
+from typing import Any, Optional, List, Tuple, Union
+
 from pydantic import BaseModel
 
 
 class DefaultResponseModel(BaseModel):
-    data: dict or None
+    data: Union[None, List[dict], dict]
     info: str or None

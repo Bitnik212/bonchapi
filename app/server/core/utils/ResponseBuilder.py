@@ -6,13 +6,13 @@ from app.server.core.models.DefaultResponseModel import DefaultResponseModel
 class ResponseBuilder:
 
     @staticmethod
-    def __get_response_schema(data: dict or None, info: str or None = "Все хорошо") -> dict:
+    def __get_response_schema(data, info: str or None = "Все хорошо") -> dict:
         """
         Получение шаблона ответа сервера
         """
         return DefaultResponseModel(data=data, info=info).dict()
 
-    def result(self, data: dict, info: str = "Все хорошо", status: int = 200) -> JSONResponse:
+    def result(self, data, info: str = "Все хорошо", status: int = 200) -> JSONResponse:
         """
         Билдер запроса по шаблону
         :param data: Данные запроса
@@ -63,3 +63,7 @@ class ResponseBuilder:
         data = self.__get_response_schema(data={}, info=info)
         return JSONResponse(status_code=status, content=data)
 
+    def bad_request(self, info: str = "Не правельный запрос") -> JSONResponse:
+        status = 400
+        data = self.__get_response_schema(data={}, info=info)
+        return JSONResponse(status_code=status, content=data)

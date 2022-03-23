@@ -1,5 +1,5 @@
 import requests as req
-import json
+from requests import Response
 
 from app.bonch import Settings
 
@@ -7,82 +7,74 @@ from app.bonch import Settings
 class BonchAuth:
 
     def __init__(self):
-        self.link = "https://lk.sut.ru/cabinet/lib/autentificationok.php?"
-        self.loginlink = "https://lk.sut.ru/cabinet/"
-        self.updatelink = "https://lk.sut.ru/cabinet/lib/updatesession.php"
+        settings = Settings
+        self.link = "https://"+settings.domain.value+"/cabinet/lib/autentificationok.php?"
+        self.login_link = "https://" + settings.domain.value + "/cabinet/"
+        self.update_link = "https://" + settings.domain.value + "/cabinet/lib/updatesession.php"
+        self.headers = settings.headers.value
+        self.session = req.Session()
+        self.user = {
+            'login': '',
+            'password': ''
+        }
 
-    def login(self, email: str, password: str, miden: str = ""):
+    @property
+    def AUTH_MIN_CONTENT_LENGTH(self) -> int:
+        return 300
+
+    def sign_in(self, email: str, password: str) -> (int, str):
         """
         Авторизация пользователя. Точнее авторизация токена (miden) пользователем\n\r
         Пока нельзя выбрать свой токен((((
 
         :param email: str
         :param password: str
-        :param miden: str = ""
         :return: dict
         """
-        # todo не срабатывает обработка на 504 от бонча
-        s = req.Session()
-        url = self.link+"users="+email+"&parole="+password
-        jar = req.cookies.RequestsCookieJar()
-        # вообще хз зачем здесь miden тк если кидать свой miden при авторизации то ничего не получится
-        if miden == "":
-            miden = self.getmiden()
-        jar.set('miden', miden, domain="lk.sut.ru", path="/")
+
+        self.user['login'] = email
+        self.user['password'] = password
+        data = tuple(self.user.values())
+
+        url = self.link
+        miden = self.__miden
+        self.session.cookies.set('miden', miden, domain="lk.sut.ru", path="/")
         try:
-            r = s.get(url, cookies=jar, timeout=Settings.timeout)
-            if r.status_code == 200:
-                if r.text == "1":
-                    s.get(self.loginlink+"?login=yes",  cookies=jar, timeout=Settings.timeout)
-                    return {"status": 200, "miden": miden}
-                elif r.text == "0":
-                    return {"status": 401, "description": "Не все данные введены"}
-                elif r.text.split("|") or len(r.text) < 300:
-                    try:
-                        for attention in  r.text.split("|"):
-                            if attention.split("=")[0] == "error":
-                                return {"status": 401, "description": "Не верные данные или вход запрещен"}
-                    except IndexError:
-                        pass
-                    return {"status": 401, "description": "Не верные данные или вход запрещен"}
-                else:
-                    return {"status": 401, "description": "Не верные данные или вход запрещен"}
-            elif r.status_code == 504:
-                return {"status": 523}
+            request = self.session.post(url, auth=data, headers=self.headers, timeout=Settings.timeout.value)
+            if request.status_code == 200:
+                # НЕ УДАЛЯТЬ!!!
+                self.session.get(self.login_link, headers=self.headers, timeout=Settings.timeout.value)
+                return (200, miden) if request.text == "1" else (401, "Не верные данные или вход запрещен")
+            return 500
         except req.exceptions.ReadTimeout or req.exceptions.Timeout:
-            return {"status": 523}
+            return 523
+        except Exception as e:
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(e).__name__, e.args)
+            return 500, message
 
-    def getmiden(self):
+    @property
+    def __miden(self) -> str or None:
         """
-        Получение кук для авторизации
-
-        :return: miden: str
+        Получение токена для его авторизации
         """
-        # todo сделать обработки на все случаи жизни
-        url = self.loginlink
-        r = req.get(url, timeout=Settings.timeout)
+        url = self.login_link
+        r = req.get(url, headers=self.headers)
         if r.status_code == 200:
             return str(r.cookies['miden'])
 
-    def logout(self, miden: str):
+    def auth_wrapper(self, r: Response or None) -> (int, Response.text or None):
         """
-        разлогин токена от пользователя
-
-        :param miden: токен
-        :return: dict
+        Обертка для проверки на авторизацию\r\n
+        Использовать только для страниц!!!
         """
-        # todo сделать обработки на все случаи жизни
-        res = self.login('0', '0', miden)
-        if res['status'] == 401:
-            return {"status": 200}
+        if r:
+            if r.status_code == 200:
+                if len(r.text) > self.AUTH_MIN_CONTENT_LENGTH:
+                    return r.status_code, r.text
+                else:
+                    return 401, r.text
+            else:
+                return r.status_code, r.text
         else:
-            res
-
-
-
-Auth = BonchAuth()
-# res = BonchAuth.updatetoken("minikraft1212@gmail.com", "cocos1234", "7a7a43726437d194b8bc21610e56a6bb")
-# res = BonchAuth.logout("6e7c1deeb07a737c4c0cf903c3991536")
-# print(res)
-# 34b8a38641d9a39e3cab8e350dbfcd7c 02:00
-# BonchAuth.getmiden()
+            return 500
