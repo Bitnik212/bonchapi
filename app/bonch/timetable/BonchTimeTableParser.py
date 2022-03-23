@@ -1,10 +1,10 @@
 from bs4 import BeautifulSoup
 
-from bonch import Settings
+from app.bonch import Settings
 import datetime
 
-from bonch.auth import BonchAuth
-from bonch.timetable.BonchTimeTableItemModel import BonchTimeTableItem, BonchTimeTableItemModel
+from app.bonch.auth import BonchAuth
+from app.bonch.timetable.BonchTimeTableItemModel import BonchTimeTableItem, BonchTimeTableItemModel
 
 
 class BonchTimeTableParser:

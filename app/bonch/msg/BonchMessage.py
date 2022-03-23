@@ -3,10 +3,10 @@ import requests, json, io, time
 
 from requests import Response
 
-from bonch.BonchGetPage import BonchGetPage
-from bonch import Settings
-from bonch.msg.BonchMessageModel import BonchMessageModel
-from bonch.msg.BonchMessageParser import BonchMessageParser
+from app.bonch.BonchGetPage import BonchGetPage
+from app.bonch import Settings
+from app.bonch.msg.BonchMessageModel import BonchMessageModel
+from app.bonch.msg.BonchMessageParser import BonchMessageParser
 
 
 class BonchMessage:

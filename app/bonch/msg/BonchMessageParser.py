@@ -1,4 +1,4 @@
-from bonch.msg.BonchMessageModel import BonchMessageModel
+from app.bonch.msg.BonchMessageModel import BonchMessageModel
 
 
 class BonchMessageParser:
