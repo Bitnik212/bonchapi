@@ -1,5 +1,5 @@
-from server.core.models.HTTPErrors.HTTPClientErrorModels import HTTPClientErrorModels
-from server.core.models.HTTPErrors.HTTPServerErrorModels import HTTPServerErrorModels
+from app.server.core.models.HTTPErrors.HTTPClientErrorModels import HTTPClientErrorModels
+from app.server.core.models.HTTPErrors.HTTPServerErrorModels import HTTPServerErrorModels
 
 
 class HTTPErrors:

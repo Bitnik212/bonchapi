@@ -1,6 +1,6 @@
-from server.core.exceptions.HTTP.HTTPStatusClass import HTTPStatusClass
-from server.core.models.HTTPErrors.StatusCode.HTTPError500Model import HTTPError500Model
-from server.core.utils.HTTPErrorModelsIterator import HTTPErrorModelsIterator
+from app.server.core.exceptions.HTTP.HTTPStatusClass import HTTPStatusClass
+from app.server.core.models.HTTPErrors.StatusCode.HTTPError500Model import HTTPError500Model
+from app.server.core.utils.HTTPErrorModelsIterator import HTTPErrorModelsIterator
 
 
 class HTTPServerErrorModels(object):

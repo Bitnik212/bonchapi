@@ -4,9 +4,9 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.requests import Request
 
-from server.core.exceptions.ResponseException import ResponseException
-from server.core.AppConfig import AppConfig
-from server.core.AppRoutes import AppRoutes
+from app.server.core.exceptions.ResponseException import ResponseException
+from app.server.core.AppConfig import AppConfig
+from app.server.core.AppRoutes import AppRoutes
 
 
 class App:

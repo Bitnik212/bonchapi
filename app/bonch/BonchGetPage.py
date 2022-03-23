@@ -1,6 +1,4 @@
 import requests
-from requests import Response
-
 from app.bonch import Settings
 
 

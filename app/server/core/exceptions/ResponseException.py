@@ -4,7 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 from fastapi import Request, status
 from starlette.responses import JSONResponse
-from server.core.utils.ResponseBuilder import ResponseBuilder
+from app.server.core.utils.ResponseBuilder import ResponseBuilder
 
 
 class ResponseException(Enum):

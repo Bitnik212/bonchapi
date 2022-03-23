@@ -1,6 +1,6 @@
 import inspect
 
-from server.core.exceptions.HTTP.HTTPStatusClass import HTTPStatusClass
+from app.server.core.exceptions.HTTP.HTTPStatusClass import HTTPStatusClass
 
 
 class HTTPErrorModelsIterator:

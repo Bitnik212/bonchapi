@@ -1,4 +1,4 @@
-from server.core.exceptions.ResponseException import ResponseException
+from app.server.core.exceptions.ResponseException import ResponseException
 
 
 class AppConfig:

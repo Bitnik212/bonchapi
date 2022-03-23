@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Form
 
-from bonch.auth import BonchAuth
-from server.app.errors.SignInErrors import SignInErrors
-from server.core.utils.ResponseBuilder import ResponseBuilder
+from app.bonch.auth import BonchAuth
+from app.server.core.models.HTTPErrors import HTTPErrors
+from app.server.core.utils.ResponseBuilder import ResponseBuilder
 
 router = APIRouter(
     prefix="/signin"
